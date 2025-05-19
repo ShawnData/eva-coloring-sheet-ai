@@ -1,0 +1,8 @@
+dalle_image_generator:
+  api_key: ${OPENAI_API_KEY}  # Will be loaded from environment variable
+  model: "dall-e-3"  # Using the latest DALL-E model
+  size: "1024x1024"  # Standard size for coloring pages
+  quality: "standard"
+  style: "natural"  # For more realistic outlines
+  n: 1  # Number of images to generate 
+  response_format: "url"  # Return the image as a URL

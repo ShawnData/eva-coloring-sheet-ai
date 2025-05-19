@@ -1,0 +1,13 @@
+design_coloring_page:
+  description: >
+    Create a detailed description of a black-and-white outline image suitable for use as a coloring page.
+  expected_output: >
+    A detailed description of the coloring page that can be used by DALL-E to generate the image.
+  agent: coloring_sheet_designer
+
+generate_dalle_image:
+  description: >
+    Use DALL-E to generate a black-and-white outline image based on the coloring sheet designer's description.
+  expected_output: >
+    A downloadable JPG file of the generated coloring page.
+  agent: coloring_sheet_designer
