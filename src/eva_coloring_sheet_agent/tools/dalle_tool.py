@@ -5,7 +5,7 @@ import os
 import yaml
 from openai import OpenAI
 from pathlib import Path
-
+import webbrowser
 
 #class DALLEImageGeneratorInput(BaseModel):
     #"""Input schema for DALLEImageGenerator."""
@@ -51,9 +51,15 @@ class DALLEImageGenerator(BaseTool):
                 response_format=self._config['response_format'],
             )
             
-            # Download and save the image
             image_url = response.data[0].url
             print(f"Image URL: {image_url}")
+            
+            # Open the image URL in the default browser
+            try:
+                webbrowser.open(image_url)
+            except webbrowser.Error:
+                print("Error opening the image URL in the default browser.")
+            
             return image_url
             
         except Exception as e:
