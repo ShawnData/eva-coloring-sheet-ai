@@ -2,6 +2,18 @@
 
 Welcome to the EvaColoringSheetAgent Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
 
+## Workflow Outline
+
+```mermaid
+graph TD
+  A[🗣️ Voice Agent<br>“What do you want to draw?”] --> B[📝 Summarizer Agent<br>Requirements Builder]
+  B --> C[🎨 Designer Agent<br>Image Generator]
+  C --> D[🗣️ Voice Agent<br>“Do you like this?”]
+  D --> E[🛠️ Editor Agent<br>Image Updater]
+  E -->|Feedback loop| D
+```
+
+
 ## Installation
 
 Ensure you have Python >=3.10 <3.13 installed on your system. This project uses [UV](https://docs.astral.sh/uv/) for dependency management and package handling, offering a seamless setup and execution experience.
