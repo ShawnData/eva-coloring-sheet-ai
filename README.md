@@ -5,9 +5,15 @@
 - Learn more about agentic frameworks
 - Learn effective use of Cursor IDE
 
-Welcome to the EvaColoringSheetAgent Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+## Description
 
-## Workflow Outline
+## Project Structure
+
+## Features
+
+## Technical Stacks
+
+## Agent Workflow Outline
 
 ```mermaid
 graph TD
@@ -68,5 +74,3 @@ For support, questions, or feedback regarding the EvaColoringSheetAgent Crew or 
 - [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
 - [Chat with our docs](https://chatg.pt/DWjSBZn)
 
-Let's create wonders together with the power and simplicity of crewAI.
-# eva-color-agent
