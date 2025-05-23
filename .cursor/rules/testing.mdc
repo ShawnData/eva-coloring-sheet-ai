@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Organize tests in the `tests/` directory, mirroring the source file structure.
+- Write tests for both CrewAI agent logic and Gradio UI functions.
+- Mock external services in tests to ensure reliability.
+- Aim for high code coverage, especially for core logic.
+- Use Pytest framework

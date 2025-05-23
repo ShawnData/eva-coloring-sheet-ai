@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Use Python Black formatter
+- Use Python 3.10+
+- Prefer type hints and dataclasses
+- Follow PEP8 style guide
+- Prefer dependency injection for external services and APIs.
+- Document all public classes and methods with docstrings.
+- Use virtual environments
