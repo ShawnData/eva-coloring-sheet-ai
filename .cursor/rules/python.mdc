@@ -10,3 +10,4 @@ alwaysApply: true
 - Prefer dependency injection for external services and APIs.
 - Document all public classes and methods with docstrings.
 - Use virtual environments
+- Manage uv as the package and project manager
