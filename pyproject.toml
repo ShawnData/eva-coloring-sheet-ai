@@ -12,7 +12,9 @@ dependencies = [
     "numpy",
     "scipy",
     "python-dotenv",
-    "pydub"
+    "pydub",
+    "gtts>=2.5.4",
+    "pygame>=2.6.1",
 ]
 
 [project.optional-dependencies]
