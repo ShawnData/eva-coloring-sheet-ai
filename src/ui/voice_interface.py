@@ -1,7 +1,6 @@
 import gradio as gr
 from typing import List, Dict
 from gtts import gTTS
-import tempfile
 import pygame
 import os
 import uuid

@@ -134,15 +134,7 @@ class VoiceAgent:
                 expected_output="A friendly and engaging response that is appropriate for children"
             )
             
-            # Create a crew with the agent and task
-            crew = Crew(
-                agents=[self.agent],
-                tasks=[task],
-                verbose=True
-            )
-            
-            # Get the agent's response
-            result = crew.kickoff()
+            result = self.agent.execute_task(task)
             return str(result)
         except Exception as e:
             print(f"Error processing input: {str(e)}")
