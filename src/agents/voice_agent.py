@@ -6,6 +6,8 @@ from pydub import AudioSegment
 from crewai import Agent, Task, Crew
 from dotenv import load_dotenv
 import openai
+from datetime import datetime
+import pathlib
 
 # Load environment variables
 load_dotenv()
@@ -33,6 +35,10 @@ class VoiceAgent:
         self.channels = 1
         self.duration = 5  # seconds
         
+        # Create temp directory if it doesn't exist
+        self.temp_dir = pathlib.Path(".temp/agent_save_audio")
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
+        
     def record_audio(self):
         """Record audio from the default microphone"""
         try:
@@ -49,15 +55,21 @@ class VoiceAgent:
             print(f"Error recording audio: {str(e)}")
             raise
     
-    def save_audio(self, audio_data, filename="temp_recording.wav"):
+    def save_audio(self, audio_data, filename=None):
         """
-        Save the audio data to a file
+        Save the audio data to a file in the .temp/agent_save_audio directory
         
         Args:
             audio_data: numpy array containing the audio data
-            filename: name of the file to save the audio to
+            filename: optional name of the file to save the audio to. If not provided,
+                     a unique filename will be generated using timestamp.
         """
         try:
+            # Generate unique filename if not provided
+            if filename is None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"recording_{timestamp}.wav"
+            
             # Ensure the audio data is in the correct format
             if isinstance(audio_data, tuple):
                 sample_rate, audio_data = audio_data
@@ -67,9 +79,12 @@ class VoiceAgent:
             # Normalize audio data if needed
             if audio_data.dtype != np.int16:
                 audio_data = (audio_data * 32767).astype(np.int16)
+            
+            # Create full path for the file
+            file_path = self.temp_dir / filename
                 
-            write(filename, sample_rate, audio_data)
-            return filename
+            write(str(file_path), sample_rate, audio_data)
+            return str(file_path)
         except Exception as e:
             print(f"Error saving audio: {str(e)}")
             raise
@@ -94,6 +109,12 @@ class VoiceAgent:
         except Exception as e:
             print(f"Error transcribing audio: {str(e)}")
             raise
+        finally:
+            try:
+                if os.path.exists(audio_file):
+                    os.remove(audio_file)
+            except Exception as e:
+                print(f"Error deleting audio file: {str(e)}")
     
     def process_input(self, text):
         """

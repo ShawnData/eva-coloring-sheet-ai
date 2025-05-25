@@ -12,10 +12,10 @@ pygame.mixer.init()
 def text_to_speech(text: str):
     """
     Convert text to speech and play it through speakers.
-    Save the audio file in a local temp_audio folder and delete after playback.
+    Save the audio file in a local .temp/test_to_speech folder and delete after playback.
     """
     try:
-        temp_dir = os.path.join(os.getcwd(), 'temp_audio')
+        temp_dir = os.path.join(os.getcwd(), '.temp/test_to_speech')
         os.makedirs(temp_dir, exist_ok=True)
         filename = f"tts_{uuid.uuid4().hex}.mp3"
         file_path = os.path.join(temp_dir, filename)
@@ -53,11 +53,11 @@ class VoiceInterface:
             
         sample_rate, audio_data = audio
         # Save the audio data to a temporary file
-        self.voice_agent.save_audio(audio_data, "temp_recording.wav")
+        audio_file =self.voice_agent.save_audio(audio_data)
         
         # Transcribe the audio
         try:
-            transcription = self.voice_agent.transcribe_audio("temp_recording.wav")
+            transcription = self.voice_agent.transcribe_audio(audio_file)
             # Add user's voice input to history
             history.append({"role": "user", "content": f"(Voice) {transcription}"})
             
