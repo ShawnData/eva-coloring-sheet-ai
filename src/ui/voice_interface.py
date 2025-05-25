@@ -1,32 +1,21 @@
 import gradio as gr
 from typing import List, Dict
 from gtts import gTTS
-import pygame
 import os
 import uuid
 
-# Initialize pygame mixer for playback
-pygame.mixer.init()
 
-def text_to_speech(text: str):
+def generate_tts_file(text: str):
     """
-    Convert text to speech and play it through speakers.
-    Save the audio file in a local .temp/test_to_speech folder and delete after playback.
+    Generate a TTS file and return the file path.
     """
-    try:
-        temp_dir = os.path.join(os.getcwd(), '.temp/test_to_speech')
-        os.makedirs(temp_dir, exist_ok=True)
-        filename = f"tts_{uuid.uuid4().hex}.mp3"
-        file_path = os.path.join(temp_dir, filename)
-        tts = gTTS(text=text, lang='en', slow=False)
-        tts.save(file_path)
-        pygame.mixer.music.load(file_path)
-        pygame.mixer.music.play()
-        while pygame.mixer.music.get_busy():
-            pygame.time.Clock().tick(10)
-        os.remove(file_path)
-    except Exception as e:
-        print(f"Error in text-to-speech: {str(e)}")
+    temp_dir = os.path.join(os.getcwd(), '.temp/test_to_speech')
+    os.makedirs(temp_dir, exist_ok=True)
+    filename = f"tts_{uuid.uuid4().hex}.mp3"
+    tts = gTTS(text=text, lang='en', slow=False)
+    file_path = os.path.join(temp_dir, filename)
+    tts.save(file_path)     
+    return file_path
 
 class VoiceInterface:
     def __init__(self, voice_agent):
@@ -64,11 +53,11 @@ class VoiceInterface:
             response = self.voice_agent.process_input(transcription)
             if response:
                 history.append({"role": "assistant", "content": response})
-                text_to_speech(response)
+                file_path = generate_tts_file(response)
             else:
                 history.append({"role": "system", "content": "Sorry, I couldn't generate a response. Please try again."})
             
-            return history, ""
+            return history, file_path
         except Exception as e:
             error_msg = f"Error processing audio: {str(e)}"
             history.append({"role": "system", "content": error_msg})
@@ -93,11 +82,11 @@ class VoiceInterface:
             response = self.voice_agent.process_input(text)
             if response:
                 history.append({"role": "assistant", "content": response})
-                text_to_speech(response)
+                file_path = generate_tts_file(response)
             else:
                 history.append({"role": "system", "content": "Sorry, I couldn't generate a response. Please try again."})
             
-            return history, ""
+            return history,file_path
         except Exception as e:
             error_msg = f"Error processing text: {str(e)}"
             history.append({"role": "system", "content": error_msg})
@@ -113,7 +102,7 @@ class VoiceInterface:
                 with gr.Column(scale=2):
                     chatbot = gr.Chatbot(
                         value=[],
-                        elem_id="chatbot",
+                        label="Chat History",
                         height=600,
                         type="messages"  # Using the new messages format
                     )
@@ -125,7 +114,9 @@ class VoiceInterface:
                                 text_input = gr.Textbox(
                                     placeholder="Type your message here...",
                                     show_label=False,
-                                    container=False
+                                    container=False,
+                                    submit_btn=True,
+                                    lines=2,
                                 )
                                 audio_input = gr.Audio(
                                     type="numpy",
@@ -133,28 +124,21 @@ class VoiceInterface:
                                     label="Voice Input",
                                     sources=["microphone"],
                                     interactive=True,
-                                    elem_id="mic-button"
+                                    elem_id="mic-button",
                                 )
-                        with gr.Column(scale=1):
-                            submit_btn = gr.Button("Send", variant="primary")
             
-            # Set up event handlers
-            submit_btn.click(
-                self.process_text,
-                inputs=[text_input, chatbot],
-                outputs=[chatbot, text_input]
-            )
+            audio_output = gr.Audio(label="TTS", type="filepath", visible=False, interactive=False, autoplay=True)
             
             text_input.submit(
                 self.process_text,
                 inputs=[text_input, chatbot],
-                outputs=[chatbot, text_input]
+                outputs=[chatbot, audio_output],
             )
             
             audio_input.change(
                 self.process_voice,
                 inputs=[audio_input, chatbot],
-                outputs=[chatbot, audio_input]
+                outputs=[chatbot, audio_output]
             )
             
         return interface
