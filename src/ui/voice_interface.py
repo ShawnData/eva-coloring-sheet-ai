@@ -120,27 +120,27 @@ class VoiceInterface:
                     )
                     
                     with gr.Row():
-                        with gr.Column(scale=4):
-                            text_input = gr.Textbox(
-                                placeholder="Type your message here...",
-                                show_label=False,
-                                container=False
-                            )
+                        with gr.Column(scale=2):
+                            # Combined input area
+                            with gr.Group():
+                                text_input = gr.Textbox(
+                                    placeholder="Type your message here...",
+                                    show_label=False,
+                                    container=False
+                                )
+                                audio_input = gr.Audio(
+                                    type="numpy",
+                                    streaming=False,
+                                    label="Voice Input",
+                                    sources=["microphone"],
+                                    interactive=True,
+                                    elem_id="mic-button"
+                                )
                         with gr.Column(scale=1):
-                            text_submit = gr.Button("Send")
-                    
-                    with gr.Row():
-                        audio_input = gr.Audio(
-                            type="numpy",
-                            streaming=False,
-                            label="Voice Input",
-                            sources=["microphone"],  # Only allow microphone input
-                            interactive=True
-                        )
-                        audio_submit = gr.Button("Send Voice")
+                            submit_btn = gr.Button("Send", variant="primary")
             
             # Set up event handlers
-            text_submit.click(
+            submit_btn.click(
                 self.process_text,
                 inputs=[text_input, chatbot],
                 outputs=[chatbot, text_input]
@@ -152,7 +152,7 @@ class VoiceInterface:
                 outputs=[chatbot, text_input]
             )
             
-            audio_submit.click(
+            audio_input.change(
                 self.process_voice,
                 inputs=[audio_input, chatbot],
                 outputs=[chatbot, audio_input]
