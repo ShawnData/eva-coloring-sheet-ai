@@ -2,8 +2,7 @@ import os
 import sounddevice as sd
 import numpy as np
 from scipy.io.wavfile import write
-from pydub import AudioSegment
-from crewai import Agent, Task, Crew
+from crewai import Agent, Task
 from dotenv import load_dotenv
 import openai
 from datetime import datetime
