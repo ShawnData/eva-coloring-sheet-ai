@@ -1,12 +1,11 @@
-from src.agents.voice_agent import VoiceAgent
-from src.ui.voice_interface import VoiceInterface
+from dotenv import load_dotenv
+from src.ui.interface import ColoringSheetInterface
+from src.crews.coloring_sheet_crew import ColoringSheetCrew
 
 def main():
-    # Initialize the voice agent
-    voice_agent = VoiceAgent()
-    
-    # Create and launch the voice interface
-    interface = VoiceInterface(voice_agent)
+    load_dotenv()
+    ai_crew = ColoringSheetCrew().crew() 
+    interface = ColoringSheetInterface(ai_crew)
     interface.launch()
 
 if __name__ == "__main__":
