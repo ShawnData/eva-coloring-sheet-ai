@@ -1,8 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-- Follow the design architecture and patterns
-- Write unit tests for all new features and bug fixes.
-- Write tests first, then the code, then run the tests and update the code until tests pass.

@@ -32,12 +32,12 @@ class ColoringSheetInterface:
             # Add user's voice input to history
             history.append({"role": "user", "content": f"(Voice) {transcription}"})
             
-            # Get agent's response
-            response: CrewOutput = self.ai_crew.kickoff(inputs={"transcription": transcription})
+            # Get agent's response using the new process_voice_input method
+            response = self.ai_crew.process_voice_input(transcription)
             if response:
-                # Assuming response is a dict with 'message' and 'image_url' keys
-                message = str(response.get('message', response))  # Fallback to full response if not dict
-                image_url = response.get('image_url', None)  # Get image URL if available
+                message = response.get('message', 'I understand you!')
+                image_url = response.get('image_url', None)
+                
                 history.append({"role": "assistant", "content": message})
                 file_path = self.audio_utils.generate_tts(message)
                 return history, file_path, image_url
@@ -82,7 +82,6 @@ class ColoringSheetInterface:
                 with gr.Column(scale=2):
                     image_output = gr.Image(
                         label="Generated Coloring Sheet",
-                        type="filepath",  # Can accept both URLs and file paths
                         interactive=False,
                         height=500,
                     )

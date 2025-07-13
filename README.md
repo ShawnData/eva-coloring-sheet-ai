@@ -1,168 +1,180 @@
-# Eva's Coloring Sheet AI
+# Eva Coloring Sheet AI
 
-An Interactive AI Coloring Sheet Creator for Kids
+An interactive AI coloring sheet creator for kids using agent-based architecture with voice interaction, AI image generation, and feedback loops.
 
-## Project Goals
-- Create an interactive AI to generate coloring sheets for my daugther, Eva.
-- Learn more about agentic frameworks
-- Learn effective use of Cursor IDE
+## Features (Phase 1 - MVP)
 
-## Overview
+✅ **Voice Interaction**: Natural voice input using Whisper transcription  
+✅ **AI Image Generation**: DALL-E 3 integration for creating coloring sheets  
+✅ **Age-Appropriate Content**: Automatic filtering of inappropriate content  
+✅ **Smart Conversation Processing**: Intelligent extraction of coloring requests  
+✅ **Text-to-Speech**: Voice responses for engaging interaction  
+✅ **Modern UI**: Gradio interface with voice input and image display  
 
-This project is an agent-based, voice-interactive system that allows children to create personalized coloring sheets through natural conversation. The system consists of multiple specialized agents collaborating in a modular workflow. It leverages speech recognition, natural language understanding, image generation, and user feedback loops to create and refine coloring sheets in an engaging and child-friendly manner.
+## Quick Start
 
-## 📐 Architecture Overview:
+### Prerequisites
 
-```
-graph TD
-    A[Kid speaks to Voice Agent (Gradio Audio Input)]
-    B[Voice Agent: Speech-to-Text (Whisper)]
-    C[Summarizer Agent: Extract Requirements]
-    D[Coloring Sheet Designer: Generate Image (DALL·E)]
-    E[Gradio UI: Show Image Output]
-    F[Kid speaks Feedback (Gradio Audio Input)]
-    G[Feedback Interpreter Agent: Parse Feedback]
-    H[Editor Agent: Edit Image (InstructPix2Pix)]
-    I[Gradio UI: Show Edited Image]
-    J[Print Agent: Send Image to Printer]
+- Python 3.11.3 or higher
+- OpenAI API key with access to DALL-E 3 and Whisper
 
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> B2[Speech-to-Text (Whisper) for Feedback]
-    B2 --> G
-    G --> H
-    H --> I
-    I --> F
-    I --> J
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd eva-coloring-sheet-ai
 ```
 
-**1. Voice Interaction Agent**
-* Greets the child and initiates a creative prompt.
+2. Install dependencies:
+```bash
+pip install -e .
+```
 
-* Uses speech-to-text (STT) to transcribe the child’s voice input.
+3. Set up environment variables:
+```bash
+# Create a .env file
+echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
+```
 
-* Adapts language complexity and tone based on age.
+4. Run the application:
+```bash
+python main.py
+```
 
-* Offers choices and guides the conversation if needed (e.g., “Would you like animals, superheroes, or something else?”).
+5. Open your browser to the Gradio interface (usually http://localhost:7860)
 
-* Detects unclear or imaginative inputs and handles re-prompts gracefully.
+## How to Use
 
-* Sends conversation transcript to the Summarizer Agent.
+1. **Start the Application**: Run `python main.py` and wait for the Gradio interface to load
 
-**2. Conversation Summarizer Agent**
-* Summarizes the voice interaction into a structured prompt/requirement (e.g., “a happy cat flying a spaceship over a rainbow”).
+2. **Voice Input**: Click the microphone button and speak your request
+   - Example: "I want a cat coloring sheet"
+   - Example: "Make me a dog picture"
+   - Example: "Create a flower drawing"
 
-* Applies filters for age-appropriate and safe content.
+3. **Get Results**: The system will:
+   - Transcribe your voice input
+   - Analyze your request
+   - Generate an age-appropriate coloring sheet
+   - Display the image in the interface
+   - Provide a voice response
 
-* Corrects malformed or nonsensical prompts, adding contextual clarification if needed.
+4. **Safety Features**: The system automatically:
+   - Filters inappropriate content
+   - Provides safe alternatives for blocked requests
+   - Ensures all content is suitable for children aged 6-8
 
-* Sends the sanitized, structured prompt to the Designer Agent.
+## Architecture
 
-**3. Coloring Sheet Designer Agent**
-* Uses an image generation model (e.g., DALL·E, Stable Diffusion) to generate a black-and-white line-art image based on the structured prompt.
+### Agent Structure
 
-* Returns the image to the Voice Agent for review.
+- **Voice Assistant Agent**: Handles voice interaction and coordinates other agents
+- **Conversation Summarizer Agent**: Converts voice input to structured prompts
+- **Coloring Sheet Designer Agent**: Generates images using DALL-E 3
 
-**4. Voice Interaction Agent (Feedback Loop)**
-* Asks the child for feedback on the generated image.
+### Data Flow
 
-* Uses STT again to capture response.
+```
+Voice Input → Transcription → Summarizer → Designer → Image Display
+                                                      ↓
+                                              Voice Response
+```
 
-* Sends response to the Feedback Interpreter Agent.
+### Key Components
 
-**5. Feedback Interpreter Agent**
-* Analyzes natural language feedback (e.g., “I want more stars” or “make it look happier”) and translates it into structured edit commands.
+- `src/agents/`: Specialized agents for different tasks
+- `src/tools/`: DALL-E integration tool
+- `src/utils/`: Audio processing utilities
+- `src/ui/`: Gradio interface
+- `src/crews/`: CrewAI orchestration
 
-* Detects vague responses and triggers clarifying questions if needed.
+## Testing
 
-* Sends edit instructions to the Editor Agent.
+Run the test suite:
 
-**6. Editor Agent**
-* Applies edits to the original image using an image editing model or system.
+```bash
+pytest tests/
+```
 
-* Returns the revised image for final review.
+### Test Coverage
 
-**7. Optional: Emotion Detection Module**
-* (Bonus) Uses voice tone to detect frustration, joy, or confusion and adjusts the interaction accordingly.
+- **Unit Tests**: Individual agent functionality
+- **Integration Tests**: Complete workflow testing
+- **Safety Tests**: Content filtering validation
 
-**8. Optional: Personalization Module**
-* Stores preferences (e.g., favorite themes or colors) for future interactions.
+## Development
 
-* Supports profile creation for recurring users.
+### Project Structure
 
+```
+src/
+├── agents/
+│   ├── conversation_summarizer.py
+│   └── coloring_sheet_designer.py
+├── crews/
+│   ├── coloring_sheet_crew.py
+│   └── config/
+├── tools/
+│   └── dalle_tool.py
+├── utils/
+│   └── audio_utils.py
+└── ui/
+    └── interface.py
+```
 
-## Key Features Summary
-**🔊 1. Voice-Based Interaction**
-* Kids interact with the system using natural voice input.
+### Adding New Features
 
-* Speech-to-text (STT) converts their ideas into text.
+1. Create new agents in `src/agents/`
+2. Add tools in `src/tools/`
+3. Update the crew in `src/crews/coloring_sheet_crew.py`
+4. Add tests in `tests/`
 
-* Age-adaptive prompting and guidance ensure the experience is appropriate and engaging.
+## Safety & Content Filtering
 
-**📝 2. Conversation Summarization**
-* Transcribes and summarizes the child’s creative intent into a clear, structured prompt.
+The system includes comprehensive safety measures:
 
-* Automatically filters and adjusts content to keep it safe and appropriate for children.
+- **Inappropriate Content Detection**: Filters out violence, weapons, adult content
+- **Age-Appropriate Prompts**: Ensures all content is suitable for children
+- **Fallback Mechanisms**: Provides safe alternatives when requests are blocked
+- **Error Handling**: Graceful degradation when services fail
 
-**🎨 3. Coloring Sheet Generation**
-* Uses AI image generation models to create black-and-white line art illustrations based on the summarized prompt.
+## Future Phases
 
-* Supports whimsical and imaginative requests from kids.
+### Phase 2: Feedback Loop System
+- Allow children to provide feedback on generated images
+- Implement image editing based on feedback
+- Support multiple iterations
 
-**🔁 4. Feedback Collection and Iteration**
-* After the initial image is shown, the child gives voice feedback (e.g., “I want a bigger sun”).
+### Phase 3: Personalization & Smart Interaction
+- User profile system
+- Emotion detection from voice
+- Smart prompting and suggestions
 
-* System interprets vague or unclear feedback and may follow up for clarification.
+### Phase 4: Printing & Export Features
+- One-click printing of coloring sheets
+- Multiple export formats
+- Print optimization
 
-**🖌️ 5. Image Editing**
-* Applies feedback-driven edits using an image editing model (e.g., ControlNet, InstructPix2Pix).
+### Phase 5: Advanced Features & Polish
+- Multi-language support
+- Accessibility features
+- Performance optimization
 
-* Maintains the coloring style (line art) after editing.
+## Contributing
 
-**😊 6. Personalization & Emotion Handling**
-* Tracks preferences (e.g., favorite themes, colors) across sessions.
+1. Follow the existing code structure and conventions
+2. Add comprehensive tests for new features
+3. Ensure all content filtering and safety measures are maintained
+4. Update documentation for any new features
 
-* Optional module detects emotions in voice to adapt the interaction dynamically (e.g., respond empathetically to frustration).
+## License
 
-**🖨️ 7. Printing Integration**
-* Provides a “Print My Coloring Sheet” feature after final approval.
+[Add your license information here]
 
-* Connects to local or wireless printers (e.g., via WebUSB, IPP, or system print dialog).
+## Support
 
-* Ensures print-friendly layout with proper margins and orientation.
-
-**🔧 8. Modular Agentic Architecture**
-Each step is handled by a dedicated specialist agent:
-
- - Voice Agent
-
- - Summarizer Agent
-
- - Designer Agent
-
- - Feedback Interpreter
-
- - Editor Agent
-
- - Printer Agent (optional)
-
-
-## Tech Stack
-| Category                  | Tool/Library                 | Purpose/Notes                                 |
-|---------------------------|-----------------------------|-----------------------------------------------|
-| **Agent Orchestration**   | CrewAI                      | Modular agent orchestration, Python-native    |
-| **LLM API**               | OpenAI GPT-4                | Powerful, easy-to-use language model API      |
-| **Voice Input (STT)**     | OpenAI Whisper              | Accurate speech-to-text, straightforward setup|
-| **Voice Output (TTS)**    | pyttsx3                    | Simple offline TTS, easy to install & run     |
-| **Frontend UI**           | Gradio                      | Fast, minimal code to build voice/image UI    |
-| **Image Generation**      | DALL·E (OpenAI API)         | Easy API for generating images from text      |
-| **Image Editing**         | InstructPix2Pix             | Instruction-driven image editing via API      |
-| **Printing**              | Browser's `window.print()`  | Simplest printing solution from web frontend  |
-| **Data Storage**          | SQLite                      | Lightweight, file-based DB included in Python |
-| **Image Utilities**       | Pillow                      | Popular Python imaging library, easy to use   |
+For issues and questions, please [create an issue](link-to-issues) in the repository.
 
 
 

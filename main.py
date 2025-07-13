@@ -4,7 +4,7 @@ from src.crews.coloring_sheet_crew import ColoringSheetCrew
 
 def main():
     load_dotenv()
-    ai_crew = ColoringSheetCrew().crew() 
+    ai_crew = ColoringSheetCrew()  # Create the crew instance directly
     interface = ColoringSheetInterface(ai_crew)
     interface.launch()
 

@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11.3"
 dependencies = [
     "crewai",
+    "crewai-tools",
     "openai",
     "gradio",
     "sounddevice",
