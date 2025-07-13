@@ -84,6 +84,14 @@ function App() {
         setCurrentImage(result.image_url);
       }
       
+      // Play TTS audio if available
+      if (result.tts_url) {
+        const audio = new Audio(result.tts_url);
+        audio.play().catch(error => {
+          console.warn('Could not play TTS audio:', error);
+        });
+      }
+      
     } catch (error) {
       console.error('Error processing voice input:', error);
       setChatHistory(prev => [
