@@ -17,8 +17,9 @@ An interactive AI coloring sheet creator for kids using agent-based architecture
 
 - Python 3.11.3 or higher
 - OpenAI API key with access to DALL-E 3 and Whisper
+- Node.js (version 14 or higher) - for React frontend
 
-### Installation
+### Option 1: Gradio Interface (Simple)
 
 1. Clone the repository:
 ```bash
@@ -43,6 +44,42 @@ python main.py
 ```
 
 5. Open your browser to the Gradio interface (usually http://localhost:7860)
+
+### Option 2: React Frontend (Recommended for Kids)
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd eva-coloring-sheet-ai
+```
+
+2. Install Python dependencies:
+```bash
+pip install -e .
+pip install flask flask-cors
+```
+
+3. Set up environment variables:
+```bash
+# Create a .env file
+echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
+```
+
+4. Start the Python API server:
+```bash
+python api_server.py
+```
+
+5. Install and start the React frontend:
+```bash
+cd frontend
+npm install
+npm start
+```
+
+6. Open your browser to the React interface (http://localhost:3000)
+
+**Note:** The React frontend provides a much better user experience with proper toggle recording functionality!
 
 ## How to Use
 
