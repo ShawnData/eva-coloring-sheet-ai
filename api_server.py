@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """
 FastAPI server for Eva's Coloring Sheet AI
-Handles voice processing requests from the React frontend
+Handles voice processing requests from the React frontend with multi-turn conversation support
 """
 
 import os
 import tempfile
 import json
+import uuid
 from fastapi import FastAPI, File, UploadFile, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from dotenv import load_dotenv
-from src.crews.coloring_sheet_crew import create_coloring_sheet_crew
+from src.crews.coloring_sheet_crew import create_coloring_sheet_crew, process_conversation_turn
+from src.utils.conversation_utils import ConversationManager, ConversationState
 from src.utils.audio_utils import AudioUtils
 import openai
 import uvicorn
@@ -31,6 +33,7 @@ app.add_middleware(
 # Initialize components
 crew = create_coloring_sheet_crew()
 audio_utils = AudioUtils()
+conversation_manager = ConversationManager()
 
 # Initialize OpenAI client
 api_key = os.getenv("OPENAI_API_KEY")
@@ -39,77 +42,71 @@ if not api_key:
 openai_client = openai.OpenAI(api_key=api_key)
 
 @app.post("/api/process-voice")
-async def process_voice(audio: UploadFile = File(...)):
+async def process_voice(
+    audio: UploadFile = File(...),
+    session_id: str = "1" # Quick fix
+):
     """Process voice input and return response with image and TTS audio"""
     try:
+        # Generate session ID if not provided
+        if not session_id:
+            session_id = str(uuid.uuid4())
+        
+        # Get or create conversation session
+        conversation_state = conversation_manager.get_session(session_id)
+        if not conversation_state:
+            conversation_state = conversation_manager.create_session(session_id)
+        
         # Save the uploaded audio to a temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
             content = await audio.read()
             temp_file.write(content)
             temp_path = temp_file.name
+        
         try:
             # Transcribe the audio
             transcription = audio_utils.transcribe_audio(temp_path, openai_client)
-            # Run CrewAI workflow
-            crew_output = crew.kickoff(inputs={"voice_input": transcription})
-            result = crew_output.to_dict()
-            print(f"Crew output: {result}")
             
-            # Extract the final result from the crew output
-            # The crew output has the result in the raw attribute as a JSON string
-            final_output = None
+            # Process the conversation turn
+            result = process_conversation_turn(crew, transcription, conversation_state)
             
-            if hasattr(crew_output, 'raw') and crew_output.raw:
+            # Update the conversation session
+            conversation_manager.update_session(session_id, result["conversation_state"])
+            
+            # Extract response components
+            message = result["message"]
+            should_generate_image = result["should_generate_image"]
+            error = result.get("error")
+            image_url = result.get("image_url")
+            
+            # Generate image if requested
+            if should_generate_image and not error:
                 try:
-                    # Remove the ```json and ``` markers if present
-                    raw_str = crew_output.raw.strip()
-                    if raw_str.startswith('```json'):
-                        raw_str = raw_str[7:]  # Remove ```json
-                    if raw_str.endswith('```'):
-                        raw_str = raw_str[:-3]  # Remove ```
+                    # Create a separate crew for image generation
+                    image_crew = create_coloring_sheet_crew()
+                    image_inputs = {
+                        "conversation_state": json.dumps(result["conversation_state"].to_dict())
+                    }
                     
-                    final_output = json.loads(raw_str.strip())
-                except json.JSONDecodeError:
-                    # If raw output is not valid JSON, try to extract message from it
-                    final_output = {"message": crew_output.raw, "image_url": None, "error": "Failed to parse output"}
-            
-            # If raw parsing failed, try to_dict() method
-            if final_output is None:
-                result = crew_output.to_dict()
-                
-                if isinstance(result, dict) and 'tasks_outputs' in result:
-                    # Get the output from the last task (designer agent)
-                    task_outputs = result['tasks_outputs']
-                    if task_outputs and len(task_outputs) > 0:
-                        last_output = task_outputs[-1]  # Last task output
-                        if isinstance(last_output, str):
-                            try:
-                                # Try to parse as JSON first
-                                final_output = json.loads(last_output)
-                            except json.JSONDecodeError:
-                                # If not JSON, use as plain message
-                                final_output = {"message": last_output, "image_url": None, "error": None}
-                        elif isinstance(last_output, dict):
-                            final_output = last_output
-                        else:
-                            final_output = {"message": str(last_output), "image_url": None, "error": None}
-                    else:
-                        final_output = {"message": "No output generated", "image_url": None, "error": "No task output"}
-                else:
-                    # Fallback: try to extract from the result directly
-                    if isinstance(result, dict):
-                        final_output = result
-                    else:
-                        final_output = {"message": str(result), "image_url": None, "error": None}
-            
-            # Ensure final_output is a dictionary with the expected structure
-            if not isinstance(final_output, dict):
-                final_output = {"message": str(final_output), "image_url": None, "error": None}
-            
-            # Extract message and image_url from the final output
-            message = final_output.get("message", "I'm sorry, I couldn't process your request.")
-            image_url = final_output.get("image_url")
-            error = final_output.get("error")
+                    image_output = image_crew.kickoff(inputs=image_inputs)
+                    
+                    # Parse image generation result
+                    if hasattr(image_output, 'raw') and image_output.raw:
+                        try:
+                            raw_str = image_output.raw.strip()
+                            if raw_str.startswith('```json'):
+                                raw_str = raw_str[7:]
+                            if raw_str.endswith('```'):
+                                raw_str = raw_str[:-3]
+                            
+                            image_result = json.loads(raw_str.strip())
+                            image_url = image_result.get("image_url")
+                            if image_result.get("message"):
+                                message = image_result["message"]
+                        except json.JSONDecodeError:
+                            error = "Failed to parse image generation result"
+                except Exception as e:
+                    error = f"Failed to generate image: {str(e)}"
             
             # Generate TTS for the assistant's response
             tts_path = audio_utils.generate_tts(message)
@@ -117,19 +114,70 @@ async def process_voice(audio: UploadFile = File(...)):
             tts_url = f"/api/tts/{tts_filename}"
             
             return {
+                'session_id': session_id,
                 'transcription': transcription,
                 'message': message,
                 'image_url': image_url,
                 'tts_url': tts_url,
-                'error': error
+                'error': error,
+                'conversation_state': result["conversation_state"].to_dict(),
+                'should_generate_image': should_generate_image
             }
+            
         finally:
             # Clean up temporary file
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
+                
     except Exception as e:
         print(f"Error processing voice input: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing voice input: {str(e)}")
+
+@app.post("/api/reset-conversation")
+async def reset_conversation(session_id: str):
+    """Reset a conversation session"""
+    try:
+        conversation_state = conversation_manager.reset_session(session_id)
+        if conversation_state:
+            return {
+                'session_id': session_id,
+                'message': 'Conversation reset successfully',
+                'conversation_state': conversation_state.to_dict()
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Session not found")
+    except Exception as e:
+        print(f"Error resetting conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error resetting conversation: {str(e)}")
+
+@app.get("/api/conversation/{session_id}")
+async def get_conversation(session_id: str):
+    """Get the current state of a conversation session"""
+    try:
+        conversation_state = conversation_manager.get_session(session_id)
+        if conversation_state:
+            return {
+                'session_id': session_id,
+                'conversation_state': conversation_state.to_dict()
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Session not found")
+    except Exception as e:
+        print(f"Error getting conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting conversation: {str(e)}")
+
+@app.delete("/api/conversation/{session_id}")
+async def delete_conversation(session_id: str):
+    """Delete a conversation session"""
+    try:
+        conversation_manager.delete_session(session_id)
+        return {
+            'session_id': session_id,
+            'message': 'Conversation deleted successfully'
+        }
+    except Exception as e:
+        print(f"Error deleting conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting conversation: {str(e)}")
 
 @app.get("/api/tts/{filename}")
 async def get_tts_file(filename: str):

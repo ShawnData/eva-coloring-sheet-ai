@@ -4,12 +4,14 @@ An interactive AI coloring sheet creator for kids using agent-based architecture
 
 ## Features (Phase 1 - MVP)
 
+✅ **Multi-Turn Conversations**: Natural back-and-forth dialogue to collect all requirements  
 ✅ **Voice Interaction**: Natural voice input using Whisper transcription  
 ✅ **AI Image Generation**: DALL-E 3 integration for creating coloring sheets  
 ✅ **Age-Appropriate Content**: Automatic filtering of inappropriate content  
 ✅ **Smart Conversation Processing**: Intelligent extraction of coloring requests  
 ✅ **Text-to-Speech**: Voice responses for engaging interaction  
-✅ **Modern UI**: Gradio interface with voice input and image display  
+✅ **Modern UI**: React frontend with conversation history and status tracking  
+✅ **Session Management**: Maintains conversation state across multiple interactions  
 
 ## Quick Start
 
@@ -83,21 +85,52 @@ npm start
 
 ## How to Use
 
-1. **Start the Application**: Run `python main.py` and wait for the Gradio interface to load
+### Multi-Turn Conversation Flow
 
-2. **Voice Input**: Click the microphone button and speak your request
+The system now supports natural multi-turn conversations! Here's how it works:
+
+1. **Start a Conversation**: Click the microphone button and say what you want to color
    - Example: "I want a cat coloring sheet"
-   - Example: "Make me a dog picture"
-   - Example: "Create a flower drawing"
 
-3. **Get Results**: The system will:
-   - Transcribe your voice input
-   - Analyze your request
-   - Generate an age-appropriate coloring sheet
-   - Display the image in the interface
-   - Provide a voice response
+2. **Answer Questions**: The AI will ask clarifying questions to get all the details
+   - "What kind of cat? A big cat like a lion or a small cat like a house cat?"
+   - "What should the cat be doing? Sitting, sleeping, or playing?"
+   - "What color should the cat be?"
 
-4. **Safety Features**: The system automatically:
+3. **Confirm Your Choices**: When all details are collected, the AI will confirm with you
+   - "Let me make sure I have everything right. You want an orange house cat playing with a ball. Is that correct?"
+
+4. **Get Your Coloring Sheet**: After confirmation, the AI generates your personalized coloring sheet
+
+### Example Conversation
+
+```
+👤 Child: "I want a cat coloring sheet"
+🤖 AI: "Great! I'd love to help you create a cat coloring sheet. What kind of cat would you like? A big cat like a lion or a small cat like a house cat?"
+
+👤 Child: "A house cat"
+🤖 AI: "Perfect! A house cat it is. What should the cat be doing? Should it be sitting, sleeping, or playing?"
+
+👤 Child: "Playing with a ball"
+🤖 AI: "That sounds fun! A house cat playing with a ball. What color should the cat be?"
+
+👤 Child: "Orange"
+🤖 AI: "An orange house cat playing with a ball - that's going to be great! Is there anything else you'd like to add to your coloring sheet?"
+
+👤 Child: "No, that's perfect"
+🤖 AI: "Let me make sure I have everything right. You want a coloring sheet of an orange house cat playing with a ball. Is that correct?"
+
+👤 Child: "Yes"
+🤖 AI: "Perfect! I'll create your orange cat playing with a ball coloring sheet now. This might take a moment..."
+```
+
+### Conversation Controls
+
+- **Reset Conversation**: Start over with a new coloring sheet request
+- **New Conversation**: Begin a completely fresh session
+- **Status Tracking**: See the current phase of your conversation (collecting, confirming, generating)
+
+### Safety Features**: The system automatically:
    - Filters inappropriate content
    - Provides safe alternatives for blocked requests
    - Ensures all content is suitable for children aged 6-8
@@ -128,16 +161,23 @@ Voice Input → Transcription → Summarizer → Designer → Image Display
 
 ## Testing
 
-Run the test suite:
+### Run All Tests
 
 ```bash
-pytest tests/
+uv run python -m pytest tests/ -v
+```
+
+### Test Multi-Turn Conversation
+
+```bash
+uv run python demo_multi_turn.py
 ```
 
 ### Test Coverage
 
 - **Unit Tests**: Individual agent functionality
 - **Integration Tests**: Complete workflow testing
+- **Multi-Turn Tests**: Conversation state management and flow
 - **Safety Tests**: Content filtering validation
 
 ## Development
