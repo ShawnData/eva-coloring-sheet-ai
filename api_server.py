@@ -57,6 +57,8 @@ async def process_voice(audio: UploadFile = File(...)):
             
             # Extract the final result from the crew output
             # The crew output has the result in the raw attribute as a JSON string
+            final_output = None
+            
             if hasattr(crew_output, 'raw') and crew_output.raw:
                 try:
                     # Remove the ```json and ``` markers if present
@@ -68,28 +70,41 @@ async def process_voice(audio: UploadFile = File(...)):
                     
                     final_output = json.loads(raw_str.strip())
                 except json.JSONDecodeError:
+                    # If raw output is not valid JSON, try to extract message from it
                     final_output = {"message": crew_output.raw, "image_url": None, "error": "Failed to parse output"}
-            else:
-                # Fallback: try to_dict() method
+            
+            # If raw parsing failed, try to_dict() method
+            if final_output is None:
                 result = crew_output.to_dict()
                 
                 if isinstance(result, dict) and 'tasks_outputs' in result:
                     # Get the output from the last task (designer agent)
                     task_outputs = result['tasks_outputs']
                     if task_outputs and len(task_outputs) > 0:
-                        final_output = task_outputs[-1]  # Last task output
-                        if isinstance(final_output, str):
+                        last_output = task_outputs[-1]  # Last task output
+                        if isinstance(last_output, str):
                             try:
-                                final_output = json.loads(final_output)
+                                # Try to parse as JSON first
+                                final_output = json.loads(last_output)
                             except json.JSONDecodeError:
-                                final_output = {"message": final_output, "image_url": None, "error": "Failed to parse output"}
-                        elif not isinstance(final_output, dict):
-                            final_output = {"message": str(final_output), "image_url": None, "error": None}
+                                # If not JSON, use as plain message
+                                final_output = {"message": last_output, "image_url": None, "error": None}
+                        elif isinstance(last_output, dict):
+                            final_output = last_output
+                        else:
+                            final_output = {"message": str(last_output), "image_url": None, "error": None}
                     else:
                         final_output = {"message": "No output generated", "image_url": None, "error": "No task output"}
                 else:
                     # Fallback: try to extract from the result directly
-                    final_output = result if isinstance(result, dict) else {"message": str(result), "image_url": None, "error": None}
+                    if isinstance(result, dict):
+                        final_output = result
+                    else:
+                        final_output = {"message": str(result), "image_url": None, "error": None}
+            
+            # Ensure final_output is a dictionary with the expected structure
+            if not isinstance(final_output, dict):
+                final_output = {"message": str(final_output), "image_url": None, "error": None}
             
             # Extract message and image_url from the final output
             message = final_output.get("message", "I'm sorry, I couldn't process your request.")
