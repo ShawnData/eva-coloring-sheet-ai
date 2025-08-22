@@ -1,9 +1,0 @@
-process_voice_input_task:
-  description: >
-    Respond to the following input from a child: {transcription}
-  expected_output: >
-    A python dictionary consists of a friendly and engaging response that is appropriate for children. The response message should be short and concise.
-    The response should be a dictionary with the following keys:
-    - message: The response message
-    - image_url: The URL of the image to display if coloring sheet was requested, else None
-  agent: voice_assistant

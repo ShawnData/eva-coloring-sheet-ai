@@ -1,9 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-- Use CrewAI for orchestrating multi-agent workflows.
-- Define each agent as a Python class with clear responsibilities.
-- Document agent roles and communication protocols in code comments.
-- Avoid hardcoding agent configurations; use environment variables or config files.

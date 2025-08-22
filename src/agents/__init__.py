@@ -1,1 +1,0 @@
-# Agents module for Eva Coloring Sheet AI 
