@@ -13,8 +13,7 @@ class ConversationState:
     """Represents the state of a conversation session."""
     
     # Core conversation data
-    requirements: Dict[str, Any] = field(default_factory=dict)
-    keywords: List[str] = field(default_factory=list)  # NEW: List of keywords extracted from conversation
+    summary: str = ""
     conversation_history: List[Dict[str, str]] = field(default_factory=list)
     
     # Conversation flow state
@@ -36,22 +35,6 @@ class ConversationState:
         })
         self.last_updated = datetime.now()
     
-    def update_requirements(self, new_requirements: Dict[str, Any]):
-        """Update the collected requirements."""
-        self.requirements.update(new_requirements)
-        self.last_updated = datetime.now()
-    
-    def add_keywords(self, new_keywords: List[str]):
-        """Add new keywords to the list, avoiding duplicates."""
-        for keyword in new_keywords:
-            if keyword.lower() not in [k.lower() for k in self.keywords]:
-                self.keywords.append(keyword)
-        self.last_updated = datetime.now()
-    
-    def get_keywords(self) -> List[str]:
-        """Get the current list of keywords."""
-        return self.keywords.copy()
-    
     def set_phase(self, phase: str):
         """Set the current conversation phase."""
         valid_phases = ["collecting", "confirming", "generating", "complete"]
@@ -72,8 +55,7 @@ class ConversationState:
     
     def reset(self):
         """Reset the conversation state for a new session."""
-        self.requirements.clear()
-        self.keywords.clear()
+        self.summary = ""
         self.conversation_history.clear()
         self.is_complete = False
         self.is_confirmed = False
@@ -83,8 +65,7 @@ class ConversationState:
     def to_dict(self) -> Dict[str, Any]:
         """Convert conversation state to dictionary for JSON serialization."""
         return {
-            "requirements": self.requirements,
-            "keywords": self.keywords,
+            "summary": self.summary,
             "conversation_history": self.conversation_history,
             "is_complete": self.is_complete,
             "is_confirmed": self.is_confirmed,
@@ -98,8 +79,7 @@ class ConversationState:
     def from_dict(cls, data: Dict[str, Any]) -> 'ConversationState':
         """Create conversation state from dictionary."""
         state = cls()
-        state.requirements = data.get("requirements", {})
-        state.keywords = data.get("keywords", [])
+        state.summary= data.get("summary", "")
         state.conversation_history = data.get("conversation_history", [])
         state.is_complete = data.get("is_complete", False)
         state.is_confirmed = data.get("is_confirmed", False)

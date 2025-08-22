@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 voice_agent = Agent(
     role="Voice Assistant",
-    goal="Facilitate natural, child-friendly multi-turn conversations to collect all coloring sheet requirements and keywords before generating the image",
+    goal="Facilitate natural, child-friendly multi-turn conversations to collect all coloring sheet requirements and summarize them as a single prompt.",
     backstory="""You are a friendly, patient voice assistant who helps children create coloring sheets through natural conversation. You engage in multiple back-and-forth interactions to collect all the details the child wants, extract keywords from their speech, ask clarifying questions when needed, and confirm the final requirements before proceeding to image generation. You make sure children feel heard and encouraged throughout the process.""",
     verbose=False,
     allow_delegation=True
@@ -19,8 +19,8 @@ voice_agent = Agent(
 
 designer_agent = Agent(
     role="Coloring Sheet Designer",
-    goal="Generate high-quality, age-appropriate coloring sheet images based on complete and confirmed requirements and keywords from the voice agent.",
-    backstory="""You are a skilled digital artist specializing in creating coloring sheets for children. You only generate images when you receive complete, confirmed requirements and keywords from the voice agent. You understand what makes a good coloring sheet: clear lines, simple shapes, age-appropriate content, and engaging designs that encourage creativity. You work with DALL-E to bring children's imaginations to life using both structured requirements and keyword lists.""",
+    goal="Generate high-quality, age-appropriate coloring sheet images based on the prompt from the voice agent.",
+    backstory="""You are a skilled digital artist specializing in designing coloring sheets for children. You only generate images when you receive complete, confirmed summary from the voice agent. You understand what makes a good coloring sheet: clear lines, simple shapes, age-appropriate content, and engaging designs that encourage creativity. You work with DALL-E to bring children's imaginations to life.""",
     verbose=False,
     allow_delegation=False,
     tools=[dalle_tool]
@@ -41,8 +41,8 @@ voice_interaction_task = Task(
     Your responsibilities:
     0. Read the current conversation state
     1. FIRST: Read and understand the child's voice_input - this is what they just said to you
-    2. Extract requirements AND keywords from their voice_input 
-    3. Update the conversation state with any new requirements and keywords found
+    2. Identify requirements from their voice_input 
+    3. Update the conversation state with any new requirements found into the summary field
     4. Determine if they want to generate the image or need more questions
     5. Provide a brief, friendly response that directly addresses their input
     
@@ -57,17 +57,17 @@ voice_interaction_task = Task(
     
     Conversation Flow:
     - FIRST TURN: If this is the first time (empty conversation_state), acknowledge their request and ask for details
+    - NOT FIRST TURN: Read the summary field in the current conversation state and use it to continue collecting requirements from the child
     - If requirements are incomplete: Ask clarifying questions and continue collecting
     - If requirements seem complete: Confirm with the child before proceeding
-    - If child confirms: Mark conversation as ready for image generation
-    - If child wants changes: Update requirements and continue conversation
+    - If child confirms: Mark conversation as ready for image generation, and 
+    - If child wants changes: Update summary and continue conversation
     
     You must respond with a JSON object in this exact format:
     {
         "message": "friendly response to the child",
         "conversation_state": {
-            "requirements": {...},
-            "keywords": [...],
+            "summary": "...",
             "conversation_history": [...],
             "is_complete": true/false,
             "is_confirmed": true/false,
@@ -82,26 +82,9 @@ voice_interaction_task = Task(
     
     If child says "I want a cat coloring sheet":
     {
-        "message": "Great! What kind of cat?",
+        "message": "Great! Anything else you want to add?",
         "conversation_state": {
-            "requirements": {"subject": "cat"},
-            "keywords": ["cat"],
-            "conversation_history": [],
-            "is_complete": false,
-            "is_confirmed": false,
-            "current_phase": "collecting",
-            "session_id": "1"
-        },
-        "should_generate_image": false,
-        "error": null
-    }
-    
-    If child says "I would like to create a cute cat with rainbows":
-    {
-        "message": "Perfect! What color should the cat be?",
-        "conversation_state": {
-            "requirements": {"subject": "cat", "description": "cute", "objects": ["rainbow"]},
-            "keywords": ["cat", "cute", "rainbow"],
+            "summary": "a cat",
             "conversation_history": [],
             "is_complete": false,
             "is_confirmed": false,
@@ -116,8 +99,7 @@ voice_interaction_task = Task(
     {
         "message": "Perfect! Creating your coloring sheet now!",
         "conversation_state": {
-            "requirements": {"subject": "cat", "description": "cute", "objects": ["rainbow"]},
-            "keywords": ["cat", "cute", "rainbow"],
+            "summary": "a cute cat with rainbow in the background",
             "conversation_history": [],
             "is_complete": true,
             "is_confirmed": true,
@@ -138,21 +120,23 @@ voice_interaction_task = Task(
 generate_coloring_sheet_task = Task(
     description="""
     Generate a coloring sheet image based on the requirements and keywords in the conversation state.
+     IMPORTANT: The previous task returns a JSON object. You must extract the "summary" field from that JSON and pass ONLY the string value to the DALL-E tool.
     
     Current conversation state: {conversation_state}
     
     Process:
-    1. Extract the requirements and keywords from the conversation state JSON
-    2. Create a detailed DALL-E prompt from the requirements AND keywords
+    1. Extract the summary prompt from the conversation state JSON
+    2. Create a detailed description of a DALL-E prompt from the summary prompt
     3. Use the DALL-E tool to generate the coloring sheet
     4. Return success result with the image URL
     
-    Example prompt creation:
-    - Requirements: {"subject": "cat", "description": "cute", "color": "white", "objects": ["rainbow"]}
-    - Keywords: ["cat", "cute", "rainbow", "playing", "orange"]
-    - DALL-E prompt: "a cute white cat with rainbow, playing, orange, black and white line art coloring sheet for children, simple clean lines, age appropriate"
+    Example:
+    - If previous task returns: {"summary": "a fat white cat with a snowball"}
+    - You should use: "{\"prompt\": \"a fat white cat with a snowball coloring sheet\"}" as the Tool Input for the DALL-E tool
     
-    IMPORTANT: Use BOTH the structured requirements AND the keywords list to create the most detailed and accurate prompt possible.
+    The DALL-E tool will handle content safety and coloring sheet optimization.
+   
+    Always create the DALL-E prompt using the summary prompt, then use the dalle_tool to generate the image suitable for use as a coloring page.
     
     You must respond with a JSON object in this exact format:
     {
@@ -162,7 +146,6 @@ generate_coloring_sheet_task = Task(
         "error": "error message if failed or null"
     }
     
-    Always create the DALL-E prompt using both requirements and keywords, then use the dalle_tool to generate the image.
     """,
     agent=designer_agent,
     expected_output="JSON object with image generation results"
