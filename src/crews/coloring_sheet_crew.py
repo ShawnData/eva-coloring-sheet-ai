@@ -57,7 +57,12 @@ generate_coloring_sheet_task = Task(
     description="""
     Generate a coloring sheet image based on the prompt from the voice agent.
     
-    Use the prompt from the previous task's output to create the image.
+    IMPORTANT: The previous task returns a JSON object. You must extract the "prompt" field from that JSON and pass ONLY the string value to the DALL-E tool.
+    
+    Example:
+    - If previous task returns: {"message": "...", "prompt": "a happy cat", "error": null}
+    - You should use: "a happy cat" as the prompt for the DALL-E tool
+    
     The DALL-E tool will handle content safety and coloring sheet optimization.
     
     You must respond with a JSON object in this exact format:
