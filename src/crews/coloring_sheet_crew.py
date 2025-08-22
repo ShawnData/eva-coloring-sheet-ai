@@ -119,8 +119,8 @@ voice_interaction_task = Task(
 
 generate_coloring_sheet_task = Task(
     description="""
-    Generate a coloring sheet image based on the requirements and keywords in the conversation state.
-     IMPORTANT: The previous task returns a JSON object. You must extract the "summary" field from that JSON and pass ONLY the string value to the DALL-E tool.
+    Design and Generate a coloring sheet image based on the requirements and keywords in the conversation state.
+    IMPORTANT: The previous task returns a JSON object. You must extract the "summary" field from that JSON and pass ONLY the string value to the DALL-E tool.
     
     Current conversation state: {conversation_state}
     
