@@ -63,6 +63,8 @@ voice_interaction_task = Task(
     - If child confirms: Mark conversation as ready for image generation, and 
     - If child wants changes: Update summary and continue conversation
     
+    NOTE: Do not ask what color, they will all be black or white since this is a coloring sheet. 
+    
     You must respond with a JSON object in this exact format:
     {
         "message": "friendly response to the child",
@@ -119,15 +121,15 @@ voice_interaction_task = Task(
 
 generate_coloring_sheet_task = Task(
     description="""
-    Design and Generate a coloring sheet image based on the requirements and keywords in the conversation state.
+    Design and Generate a coloring sheet image based on the summary field in the conversation state.
     IMPORTANT: The previous task returns a JSON object. You must extract the "summary" field from that JSON and pass ONLY the string value to the DALL-E tool.
     
     Current conversation state: {conversation_state}
     
     Process:
     1. Extract the summary prompt from the conversation state JSON
-    2. Create a detailed description of a DALL-E prompt from the summary prompt
-    3. Use the DALL-E tool to generate the coloring sheet
+    2. Design a better prompt based on the summary prompt using your expertise
+    3. Use the DALL-E tool to generate the coloring sheet based on the new prompt
     4. Return success result with the image URL
     
     Example:
