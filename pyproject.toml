@@ -1,47 +1,7 @@
 [project]
 name = "eva-coloring-sheet-ai"
 version = "0.1.0"
-description = "An Interactive AI Coloring Sheet Creator for Kids"
+description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11.3"
-dependencies = [
-    "crewai",
-    "crewai-tools",
-    "openai",
-    "gradio",
-    "sounddevice",
-    "numpy",
-    "scipy",
-    "python-dotenv",
-    "pydub",
-    "gtts>=2.5.4",
-    "fastapi",
-    "uvicorn[standard]",
-]
-
-[project.optional-dependencies]
-test = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-mock>=3.10.0"
-]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-addopts = "-v --cov=src --cov-report=term-missing"
-pythonpath = ["."]
-
-[dependency-groups]
-dev = [
-    "pytest>=8.3.5",
-    "pytest-cov>=6.1.1",
-    "pytest-mock>=3.14.0",
-]
+requires-python = ">=3.13"
+dependencies = []
