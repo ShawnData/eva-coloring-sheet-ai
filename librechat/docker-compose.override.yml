@@ -110,18 +110,18 @@
 #      - "host.docker.internal:host-gateway"
 
 # # ADD OLLAMA
-#  ollama:
-#    image: ollama/ollama:latest
-#    deploy:
-#      resources:
-#        reservations:
-#          devices:
-#            - driver: nvidia
-#              capabilities: [compute, utility]
-#    ports:
-#      - "11434:11434"
-#    volumes:
-#      - ./ollama:/root/.ollama
+   ollama:
+    image: ollama/ollama:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [compute, utility]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama:/root/.ollama
 
 # # ADD LITELLM BASIC - NEED TO CONFIGURE litellm-config.yaml, ONLY NEED ENV TO ENABLE REDIS FOR CACHING OR LANGFUSE FOR MONITORING
 #  litellm:

@@ -1,2 +1,7 @@
 **__pycache__**
 .env
+data-node
+images
+logs
+meili_data_*
+ollama
